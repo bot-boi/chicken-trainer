@@ -1,0 +1,40 @@
+program chickenTrainer;
+
+//{$DEFINE SMART}
+{$include_once context.simba}
+{$include_once utils.simba}
+{$include_once finders.simba}
+{$include_once credentials.simba}
+//{$include_once travel.simba}
+
+const
+  ESCAPE       = 27;
+
+var
+  PPen: TPoint;
+
+begin
+  wait(10000);
+  InitContext();
+  PPen := Point(678, 196);
+  writeln(Walker.GetMyPos());
+  while True do begin
+    wait(50);
+
+    {$IFDEF SMART}
+      Smart.Image.Clear;
+      Smart.Image.drawClear(0); // clears debug stuff
+    {$ENDIF}
+
+    if isKeyDown(ESCAPE) then Break;
+    if (Random(5) = 1) then AntibanContext();
+    if Random(0, 1) = 0 then begin
+      if not findChicken(CH_WHITE) then
+        Walker.WalkPath([PPen]);
+    end else begin
+      if not findChicken(CH_BROWN) then
+        Walker.WalkPath([PPen]);
+    end;
+  end;
+  FreeContext();
+end.

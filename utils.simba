@@ -1,0 +1,37 @@
+// utilities
+
+function WaitPlayerAnimating(): boolean; begin
+  repeat
+    wait(50);
+    writeln('player animating!');
+    writeln(SRL.GetPixelShift(Mainscreen.GetPlayerBox(), 1000));
+  until not SRL.IsAnimating(Mainscreen.GetPlayerBox(), 5, 1000, 3);
+  writeln('combat ended');
+  Result := True;
+end
+
+function WaitScreenMoving(): boolean; begin // a 640x440 screen has ~281000 pixels
+  repeat
+    wait(50);
+  until not SRL.IsAnimating(Mainscreen.GetBounds, 20000, 500, 5);
+end
+
+// checks if 2 points are in range of each other
+function inRange2(this, other: TPoint; range: integer): boolean;
+begin
+  Result := this.DistanceTo(other) <= range;
+end;
+
+procedure declarePlayer(name: string; pw: string; world: integer;
+                        isActive: boolean = True; isMember: boolean = False);
+begin
+  writeln('declarePlayer()-: declaring user: ' + name + ' ' + pw);
+  with Players.New()^ do
+  begin
+    LoginName := name;
+    Password  := pw;
+    IsActive  := isActive;
+    IsMember  := isMember;
+    World     := world;
+  end;
+end;

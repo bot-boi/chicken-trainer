@@ -1,0 +1,49 @@
+// finders
+{$include_once context.simba}
+
+function findChicken(color: TCTS2Color): boolean; // finder
+
+  procedure waitLoop(); // waits for combat to be over
+  var
+    HPBars: THPBarArray;
+    TPA: TPointArray;
+  begin
+    writeln('beginning combat waitloop');
+    wait(3000, 5000); // wait a bit just to make sure combat has started and health bar is visible
+    while Length(Mainscreen.FindHPBars(Mainscreen.GetPlayerBox)) > 0 do begin
+      writeln('in combat!');
+      wait(250);
+    end;
+    writeln('combat waitloop ended!');
+  end;
+
+var
+  TPA, Chicken: TPointArray;
+  ATPA: T2DPointArray;
+
+begin
+  Result := False;
+  if (SRL.FindColors(TPA, color, Mainscreen.GetBounds) > 0) then
+  begin
+    ATPA := TPA.Cluster(3);                 // sort pixels with 2 of each other into groups
+    ATPA.FilterSize(30, 90);              // filter out < 200 & > 600 pixel groups
+    ATPA.SortByIndex(Mainscreen.GetMiddle); // sort groups by closest to middle
+    {$IFDEF SMART}
+      Smart.Image.DebugATPA(ATPA);
+    {$ENDIF}
+    for Chicken in ATPA do
+    begin
+      Mouse.Move(Chicken[Random(Length(Chicken))]);
+      if Mainscreen.IsUpText('Chicken') then
+      begin
+        Result := True;
+        if Mouse.Click(ctRed) then
+        begin
+          waitLoop();
+          Break;
+        end;
+      end;
+    end;
+  end;
+  writeln('found chicken: ' + BoolToStr(Result));
+end;

@@ -1,0 +1,87 @@
+// context.simba
+// This is the global context of the script.  These variables will be made available to other files via the {$include_once} directive.
+// context.simba contains or may eventually contain an instance of SRL, RSWalker, the OSRS client (as a TClientWrapper (TODO)), and a logger.
+// Basically, this is the global context of the script, so things that need to be globally available will end up here.
+
+{$I SRL/OSR.simba}
+{$I RSWalker/Walker.simba}
+{$include_once credentials.simba}
+{$include_once utils.simba}
+
+const
+  LUMBY_SLICE  = 'C:\Users\Administrator\Desktop\Simba\Scripts\cow-killer-1\maps\lumby-slice.png';
+
+var
+  InitFlag: Boolean;
+  Walker:   TRSWalker;
+  Antiban: TAntiban;
+  CH_BROWN, CH_WHITE: TCTS2Color;
+
+// FreeContext - Frees Context.
+procedure FreeContext; begin
+  writeln('FreeContext-: Freeing Context.');
+  if Assigned(Walker) then
+    Walker.Free;
+end;
+
+// LoadMapContext() - Loads a new map into RSWalker.
+procedure LoadMapContext(mapPath: String; downsample: Integer = 6); begin
+  if Assigned(Walker) then
+    writeln('LoadMapContext-: Walker already initialized.  Reloading Walker...');
+    Walker.Free;
+
+  writeln('LoadMapContext-: Loading map: ' + mapPath);
+  Walker.Init(mapPath, downsample);
+  AddOnTerminate(@Walker.Free);
+end;
+
+// InitContext - Initializes Context.
+procedure InitContext; begin
+  writeln('InitContext-: Initializing Context.');
+  SRL.Setup([]);
+  LoadMapContext(LUMBY_SLICE);
+  declarePlayer(NAME, PW, WORLD);
+  Players.SetCurrent(0);
+  if not SRL.isLoggedIn then
+    Players.LoginCurrent();
+  AddOnTerminate(@FreeContext);
+
+  Options.SetZoom(50);
+  Options.SetBrightness(100);
+  Mainscreen.SetAngle(True);
+
+  CH_BROWN := CTS2(3102066, 7, 0.06, 0.91);
+  CH_WHITE := CTS2(6392997, 16, 0.03, 0.55);
+
+  Antiban.Init(SKILL_TOTAL, 4);
+  Antiban.SetupBiometrics();
+
+  Antiban.AddTask([@Antiban.LoseFocus,      ONE_MINUTE*5]);
+  Antiban.AddTask([@Antiban.HoverPlayers,   ONE_MINUTE*8]);
+  Antiban.AddTask([@Antiban.CheckStats,     ONE_MINUTE*10]);
+  Antiban.AddTask([@Antiban.OpenRandomTab,  ONE_MINUTE*10]);
+  Antiban.AddTask([@Antiban.VeryShortBreak, ONE_MINUTE*25]);
+  Antiban.AddTask([@Antiban.DoMiscStuff,    ONE_MINUTE*25]);
+  Antiban.AddTask([@Antiban.RandomCompass,  ONE_MINUTE*45]);
+
+  //Antiban.AddBreak([35 * ONE_MINUTE, 05 * ONE_MINUTE, 0.05]);
+  //Antiban.AddBreak([02 * ONE_MINUTE, 15 * ONE_MINUTE, 0.20]);
+  //Antiban.AddBreak([05 * ONE_MINUTE, 45 * ONE_MINUTE, 0.85]);
+  //Antiban.AddBreak([16 * ONE_MINUTE, 08 * ONE_MINUTE, 0.99]);
+
+  writeln('InitContext-: Done.');
+end;
+
+procedure AntibanContext; begin
+  writeln('AntibanContext-: Doing Antiban.');
+  if not SRL.IsLoggedIn() then begin
+    writeln('AntibanContext-: Player not logged in, relogging...');
+    Players.LoginCurrent();
+    Exit;
+  end;
+  SRL.DismissRandom();
+  Antiban.DoAntiban();
+  writeln('AntibanContext-: Antiban done!');
+end;
+
+
