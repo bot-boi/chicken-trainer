@@ -1,3 +1,4 @@
+// vim: set syntax=pascal:
 program chickenTrainer;
 
 //{$DEFINE SMART}

@@ -1,3 +1,4 @@
+// vim: set syntax=pascal:
 // context.simba
 // This is the global context of the script.  These variables will be made available to other files via the {$include_once} directive.
 // context.simba contains or may eventually contain an instance of SRL, RSWalker, the OSRS client (as a TClientWrapper (TODO)), and a logger.
