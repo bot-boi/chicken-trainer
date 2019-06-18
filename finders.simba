@@ -1,6 +1,5 @@
 // vim: set syntax=pascal:
 // finders
-{$include_once context.simba}
 
 function findChicken(color: TCTS2Color): boolean; // finder
 
@@ -27,7 +26,8 @@ begin
   if (SRL.FindColors(TPA, color, Mainscreen.GetBounds) > 0) then
   begin
     ATPA := TPA.Cluster(3);                 // sort pixels with 2 of each other into groups
-    ATPA.FilterSize(30, 90);              // filter out < 200 & > 600 pixel groups
+    writeln(Length(ATPA));
+    ATPA.FilterSize(20, 200);              // filter out < 200 & > 600 pixel groups
     ATPA.SortByIndex(Mainscreen.GetMiddle); // sort groups by closest to middle
     {$IFDEF SMART}
       Smart.Image.DebugATPA(ATPA);
@@ -40,6 +40,7 @@ begin
         Result := True;
         if Mouse.Click(ctRed) then
         begin
+          Result := True;
           waitLoop();
           Break;
         end;
