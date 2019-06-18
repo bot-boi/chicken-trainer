@@ -1,24 +1,59 @@
 // vim: set syntax=pascal:
 program chickenTrainer;
 
-//{$DEFINE SMART}
 {$include_once context.simba}
 {$include_once utils.simba}
 {$include_once finders.simba}
-{$include_once credentials.simba}
-//{$include_once travel.simba}
 
 const
   ESCAPE       = 27;
 
 var
   PPen: TPoint;
+  CombatStyleIndex: Integer = 0; // scimmy combat styles: chop=0,slash=1,block=2
+  ScriptTimer: TTimeMarker;
+
+procedure NextCombatStyle();
+var
+  maxIndex: Integer = 2;
+begin
+  Inc(CombatStyleIndex);
+  if CombatStyleIndex > maxIndex then CombatStyleIndex := 0;
+
+  Combat.Open();
+
+  case CombatStyleIndex of
+    0: Combat.ToggleButton(cbtAccurate,   True);
+    1: Combat.ToggleButton(cbtControlled, True); // slash
+    2: Combat.ToggleButton(cbtDefensive,  True);
+  end;
+end;
+
+function RandomizePoint(p: TPoint; range: Integer): TPoint;
+var
+  hx, hy, lx, ly, rx, ry: Integer; // high x, low x, random/result x
 
 begin
-  wait(10000);
+  hx := p.x + range div 2;
+  hy := p.y + range div 2;
+  lx := p.x - range div 2;
+  ly := p.y - range div 2;
+  rx := RandomRange(lx, hx);
+  ry := RandomRange(ly, hy);
+  Result := Point(rx, ry);
+end;
+
+begin
+
+  wait(5000);
+  ScriptTimer.Start();
   InitContext();
   PPen := Point(678, 196);
   writeln(Walker.GetMyPos());
+
+  CombatStyleIndex := Random(0, 2);
+  NextCombatStyle();
+
   while True do begin
     wait(50);
 
@@ -27,15 +62,26 @@ begin
       Smart.Image.drawClear(0); // clears debug stuff
     {$ENDIF}
 
+    // Walker.DebugPos();
+    // Wait(5000);
+
+    if ScriptTimer.GetTime > ONE_HOUR + (ONE_HOUR/2) then Break;
     if isKeyDown(ESCAPE) then Break;
     if (Random(5) = 1) then AntibanContext();
     if Random(0, 1) = 0 then begin
       if not findChicken(CH_WHITE) then
-        Walker.WalkPath([PPen]);
+        Walker.WalkStep(RandomizePoint(PPen, 25));
+        writeln(Walker.GetMyPos());
     end else begin
       if not findChicken(CH_BROWN) then
-        Walker.WalkPath([PPen]);
+        Walker.WalkStep(RandomizePoint(PPen, 25));
+        writeln(Walker.GetMyPos());
     end;
+    if Random(0, 100) = 0 then NextCombatStyle();
   end;
-  FreeContext();
+  Logout.Open();
+  Wait(10000);
+  Logout.ClickLogout();
 end.
+
+// rsclient.find: OK
