@@ -23,16 +23,4 @@ begin
   Result := this.DistanceTo(other) <= range;
 end;
 
-procedure declarePlayer(name: string; pw: string; world: integer;
-                        isActive: boolean = True; isMember: boolean = False);
-begin
-  writeln('declarePlayer()-: declaring user: ' + name + ' ' + pw);
-  with Players.New()^ do
-  begin
-    LoginName := name;
-    Password  := pw;
-    IsActive  := isActive;
-    IsMember  := isMember;
-    World     := world;
-  end;
-end;
+
